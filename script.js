@@ -12,88 +12,121 @@ let board, current, active;
 let scoreX = 0;
 let scoreO = 0;
 let scoreDraw = 0;
+
 const WIN_LINES = [
-    [0,1,2],[3,4,5],[6,7,8], // rows
-    [0,3,6],[1,4,7],[2,5,8], // cols
-    [0,4,8],[2,4,6] // diags
-    ];
-    function init(){
-        board = Array(9).fill('');
-        current = 'X';
-        active = true;
-        cells.forEach(c=>{
-        c.textContent = '';
-        c.className = 'cell';
-        c.disabled = false;
-        });
-        turnEl.textContent = current;
-        stateEl.textContent = '';
-        }
-        function place(idx){
-            if(!active || board[idx]) return;
-            board[idx] = current;
-            const cell = cells[idx];
-            cell.textContent = current;
-            cell.classList.add(current.toLowerCase());
-            const result = evaluate();
-            if(result.finished){
-            endGame(result);
-            }else{
-            switchTurn();
-            }
-            }
-            function switchTurn(){
-                current = current==='X' ? 'O' : 'X';
-                turnEl.textContent = current;
-                }
-                function evaluate(){
-                    for(const line of WIN_LINES){
-                    const [a,b,c] = line;
-                    if(board[a] && board[a]===board[b] && board[a]===board[c]){
-                    return { finished:true, winner:board[a], line };
-                    }
-                    }
-                    if(board.every(v=>v)) return { finished:true, winner:null };
-                    return { finished:false };
-                    }
-                    function endGame({winner, line}){
-                        active = false;
-                    
-                        if(winner){
-                            stateEl.textContent = `${winner} 勝利！`;
-                            line.forEach(i=> cells[i].classList.add('win'));
-                    
-                            if(winner === 'X') scoreX++;
-                            if(winner === 'O') scoreO++;
-                        }else{
-                            stateEl.textContent = '平手';
-                            scoreDraw++;
-                        }
-                    
-                        updateScoreboard();
-                        cells.forEach(c=> c.disabled = true);
-                    }
-                    
-                        cells.forEach(cell=>{
-                            cell.addEventListener('click', ()=>{
-                            const idx = +cell.getAttribute('data-idx');
-                            place(idx);
-                            });
-                           });
-                           btnReset.addEventListener('click', init);
-                           //
-                           init();
-                           function updateScoreboard(){
-                            scoreXEl.textContent = scoreX;
-                            scoreOEl.textContent = scoreO;
-                            scoreDrawEl.textContent = scoreDraw;
-                            }
-                            btnReset.addEventListener('click', init);
-                            btnResetAll.addEventListener('click', ()=>{
-                                scoreX = scoreO = scoreDraw = 0;
-                                updateScoreboard();
-                                init();
-                                });
+  [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+  [0, 3, 6], [1, 4, 7], [2, 5, 8], // cols
+  [0, 4, 8], [2, 4, 6]             // diags
+];
+
+function updateTurnStyle() {
+  // 清掉舊 class，再依照 current 加上對應 class，讓文字變色
+  turnEl.classList.remove('turn-x', 'turn-o');
+  if (current === 'X') {
+    turnEl.classList.add('turn-x');
+  } else {
+    turnEl.classList.add('turn-o');
+  }
+}
+
+function init() {
+  board = Array(9).fill('');
+  current = 'X';
+  active = true;
+
+  cells.forEach(c => {
+    c.textContent = '';
+    c.className = 'cell';
+    c.disabled = false;
+  });
+
+  turnEl.textContent = current;
+  stateEl.textContent = '';
+
+  updateTurnStyle();
+}
+
+function place(idx) {
+  if (!active || board[idx]) return;
+
+  board[idx] = current;
+  const cell = cells[idx];
+  cell.textContent = current;
+  cell.classList.add(current.toLowerCase());
+
+  // 加入下棋動畫 class
+  cell.classList.add('placed');
+  setTimeout(() => cell.classList.remove('placed'), 180);
+
+  const result = evaluate();
+  if (result.finished) {
+    endGame(result);
+  } else {
+    switchTurn();
+  }
+}
+
+function switchTurn() {
+  current = current === 'X' ? 'O' : 'X';
+  turnEl.textContent = current;
+  updateTurnStyle();
+}
+
+function evaluate() {
+  for (const line of WIN_LINES) {
+    const [a, b, c] = line;
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      return { finished: true, winner: board[a], line };
+    }
+  }
+  if (board.every(v => v)) return { finished: true, winner: null };
+  return { finished: false };
+}
+
+function endGame({ winner, line }) {
+  active = false;
+
+  if (winner) {
+    stateEl.textContent = `${winner} 勝利！`;
+    line.forEach(i => cells[i].classList.add('win'));
+
+    if (winner === 'X') scoreX++;
+    if (winner === 'O') scoreO++;
+  } else {
+    stateEl.textContent = '平手';
+    scoreDraw++;
+  }
+
+  updateScoreboard();
+  cells.forEach(c => c.disabled = true);
+}
+
+function updateScoreboard() {
+  scoreXEl.textContent = scoreX;
+  scoreOEl.textContent = scoreO;
+  scoreDrawEl.textContent = scoreDraw;
+}
+
+// 綁定事件
+cells.forEach(cell => {
+  cell.addEventListener('click', () => {
+    const idx = +cell.getAttribute('data-idx');
+    place(idx);
+  });
+});
+
+btnReset.addEventListener('click', init);
+
+btnResetAll.addEventListener('click', () => {
+  scoreX = scoreO = scoreDraw = 0;
+  updateScoreboard();
+  init();
+});
+
+// 初始啟動
+init();
+
                         
                                         
                             
+
